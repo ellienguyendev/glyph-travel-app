@@ -7,26 +7,20 @@ module.exports = function(app, passport, db, ObjectId) {
   });
 
 
-
   // PROFILE SECTION =========================
 
-  //there should be one get fro the same page, list of users being rendered is the one that needs to be manipulated
   app.get('/profile', isLoggedIn, function(req, res) {
-    //  Leon's Username material
-    var uId = ObjectId(req.session.passport.user) //error
+    var uId = ObjectId(req.session.passport.user) 
     var uName
     db.collection('users').find({
       "_id": uId
     }).toArray((err, result) => {
-      console.log('THIS IS SPARTAAAAAAAAGSGAGGGAG', uId, result[0])
       if (err) return console.log(err)
-      uName = result[0].local.username //herererererpasta current change
+      uName = result[0].local.username 
       db.collection('messages').find({
         'username': result[0].local.username
       }).toArray((err, messages) => {
-        console.log(messages, "The Rat Eats Cake");
         if (err) return console.log(err)
-        //always check what is being passed
         res.render('profile.ejs', {
           user: req.user,
           messages: messages,
@@ -37,11 +31,8 @@ module.exports = function(app, passport, db, ObjectId) {
     });
   });
 
-  //SYNTAX ERRORRRRRRRR AAAAAHAHAHAHAHHAHA
 
-  app.get('/profile/:username', isLoggedIn, function(req, res) { //to create a new get for specific user bein viewed by main viewer
-    //  Leon's Username material
-
+  app.get('/profile/:username', isLoggedIn, function(req, res) {
     db.collection('users').find({
       "username": req.params.username
     }).toArray((err, result) => {
@@ -51,12 +42,11 @@ module.exports = function(app, passport, db, ObjectId) {
       db.collection('messages').find({
         username: req.body.local.username
       }).toArray((err, messages) => {
-        if (err) return console.log(err) //always check what is being passed
-        console.log(messages, "HERE ARE MESSAGES")
+        if (err) return console.log(err) 
         res.render('profile.ejs', {
           user: req.user,
           messages: messages,
-          title:req.title,//here
+          title:req.title,
           bio: req.bio,
           time: req.time
         })
@@ -74,10 +64,9 @@ module.exports = function(app, passport, db, ObjectId) {
   //Maps ROUTES ================================================================
 
   app.get('/maps', isLoggedIn, function(req, res) {
-    console.log(req.session, "HumDiddly Dum Dum"); //params is an empty object {}
     var uId = ObjectId(req.session.passport.user)
 
-    db.collection('messages').find({ //took out id only looking for 1 id
+    db.collection('messages').find({ 
       location: {
         $near: {
           $maxDistance: 1000,
@@ -90,18 +79,13 @@ module.exports = function(app, passport, db, ObjectId) {
           }
         }
       }
-    }).toArray((err, messages) => { // put mongodb results into an array called messagesData
+    }).toArray((err, messages) => { 
       if (err) return console.log(err);
-      console.log('LOOOOOOKKKK', messages)
-
       const mapResults = {
         "type": "FeatureCollection",
         "features": []
       };
-      //loop through each message in the messagesData array and create an object which will be pushed into the features array inside mapResults
       messages.forEach(md => {
-        //  console.log("MD:", md.quote, md.name, "longitude:", md.location.coordinates[0], "latitue:", md.location.coordinates[1]);
-        //  console.log(mapResults.geometry)//Correct in terminal
         mapResults.features.push({
           "type": "Feature",
           "geometry": {
@@ -113,31 +97,24 @@ module.exports = function(app, passport, db, ObjectId) {
             "who"   : md.username,
             "title" : md.title,
             "id"    : md._id
-            //"who": md.name,
-            //"location": md.location.coordinates //why arent you working?
           }
         });
       })
-      console.log(mapResults, "GAFAGAGHGH")
-      console.log(mapResults, messages, " LOOOOOKK ATATATATAT EEMEMEMEME IM MISTER ME SEEEEEKKKSS")
-      console.log(mapResults, "It is I the") //HERE
       res.render('maps.ejs', {
         features: mapResults.features,
         geometry: mapResults.geometry,
         mapResults: mapResults
-      }) //HERE
+      })
 
       res.end();
 
     })
-  }) //here
+  }) 
 
-//one renders the ejs and the other renders the results raw
   app.get('/mapsdata', isLoggedIn, function(req, res) {
-    console.log(req.session, "HumDiddly Dum Dum"); //params is an empty object {}
     var uId = ObjectId(req.session.passport.user)
 
-    db.collection('messages').find({ //took out id only looking for 1 id
+    db.collection('messages').find({ 
       location: {
         $near: {
           $maxDistance: 1000,
@@ -150,18 +127,14 @@ module.exports = function(app, passport, db, ObjectId) {
           }
         }
       }
-    }).toArray((err, messages) => { // put mongodb results into an array called messagesData
+    }).toArray((err, messages) => {
       if (err) return console.log(err);
-      console.log('LOOOOOOKKKK', messages)
 
       const mapResults = {
         "type": "FeatureCollection",
         "features": []
       };
-      //loop through each message in the messagesData array and create an object which will be pushed into the features array inside mapResults
       messages.forEach(md => {
-        //  console.log("MD:", md.quote, md.name, "longitude:", md.location.coordinates[0], "latitue:", md.location.coordinates[1]);
-        //  console.log(mapResults.geometry)//Correct in terminal
         mapResults.features.push({
           "type": "Feature",
           "geometry": {
@@ -172,16 +145,10 @@ module.exports = function(app, passport, db, ObjectId) {
             "message": md.quote,
             "id"     : md._id,
             "who"   : md.username
-          //  "who": md.name,
-          //  "location": md.location.coordinates //why arent you working?
           }
         });
       })
-      console.log(mapResults, "GAFAGAGHGH")
-      console.log(mapResults, messages, " LOOOOOKK ATATATATAT EEMEMEMEME IM MISTER ME SEEEEEKKKSS")
-      console.log(mapResults, "It is I the") //HERE
-      res.json(mapResults) //HERE
-      //sends to fetch,converts to json
+      res.json(mapResults)
       res.end();
 
     })
@@ -189,46 +156,14 @@ module.exports = function(app, passport, db, ObjectId) {
   });
 
 
-  //   app.post('/messages', isLoggedIn, (req, res) => {
-  //     // TO-DO parse from string to stringify
-  //     // if (req.body.bio !== undefined && req.body.name && req.body.quote){
-  //     let location = JSON.parse(req.body.locate);
-  //     //let location = JSON.parse(req.body.locate)
-  //     var uId = ObjectId(req.session.passport.user)
-  //     var uName
-  //     db.collection('users').find({"_id": uId}).toArray((err, result) => {
-  //       if (err) return console.log(err)
-  //     db.collection('messages').save({
-  //       bio: req.body.bio, //HERE HERE
-  //       name: req.body.name,
-  //       quote: req.body.quote,
-  //       username: req.user.local.username,
-  //       location: {
-  //         type: "Point",
-  //         coordinates: [location.lat, location.lon]
-  //       },
-  //       thumbUp: false
-  //     }, (err, result) => {
-  //       if (err) return console.log(err) //may be an error
-  //       //console.log('saved to database', result)
-  //       res.redirect('/profile')
-  //     })
-  //   })
-  // })
-
 //IMAGE CODE ==================================
 
 
 
   // Posting routes ===============================================================
-  //KW Friday: changed post to help with geo location and message
 
-  //TODO: Fixpost so that you can post both the location of the user wmith their username and be able to
   app.post('/messages', isLoggedIn, (req, res) => {
-    // TO-DO parse from string to stringify
-    // if (req.body.bio !== undefined && req.body.name && req.body.quote){
     let location = JSON.parse(req.body.locate);
-    //let location = JSON.parse(req.body.locate)
     var uId = ObjectId(req.session.passport.user)
     var uName
     db.collection('users').find({
@@ -237,13 +172,12 @@ module.exports = function(app, passport, db, ObjectId) {
       if (err) return console.log(err)
       uName = result[0].local.username
       db.collection('messages').save({
-        bio: req.body.bio, //HERE HERE
+        bio: req.body.bio, 
         name: req.body.name,
         quote: req.body.quote,
         title: req.body.title,
-        time: ObjectId(req.body.id).getTimestamp(),//here
+        time: ObjectId(req.body.id).getTimestamp(),
         username: uName,
-        // uId     : req.session.passport.user //Here
         location: {
           type: "Point",
           coordinates: [location.lat, location.lon]
@@ -251,8 +185,7 @@ module.exports = function(app, passport, db, ObjectId) {
         thumbUp: false,
 
       }, (err, result) => {
-        if (err) return console.log(err) //may be an error
-        //console.log('saved to database', result)
+        if (err) return console.log(err)
         res.redirect('/profile')
       })
     })
@@ -263,7 +196,7 @@ module.exports = function(app, passport, db, ObjectId) {
     db.collection('messages')
       .findOneAndUpdate({
 
-        quote: req.body.quote //HERE HERE
+        quote: req.body.quote
 
       }, {
         $set: {
@@ -273,7 +206,7 @@ module.exports = function(app, passport, db, ObjectId) {
         sort: {
           _id: -1
         },
-        upsert: true //hwre
+        upsert: true
       }, (err, result) => {
         if (err) return res.send(err)
         res.send(result)
@@ -303,25 +236,22 @@ module.exports = function(app, passport, db, ObjectId) {
 
   // process the login form
   app.post('/login', passport.authenticate('local-login', {
-    successRedirect: '/profile', // redirect to the secure profile section
-    failureRedirect: '/login', // redirect back to the signup page if there is an error
-    failureFlash: true // allow flash messages
+    successRedirect: '/profile', 
+    failureRedirect: '/login', 
+    failureFlash: true 
   }));
 
   // SIGNUP =================================
-  // TODO: Fix sign-up button not active
-  // show the signup form
   app.get('/signup', function(req, res) {
     res.render('signup.ejs', {
       message: req.flash('signupMessage')
     });
   });
-  //KW change sign up to local - index also it seems that sign up is actually a class name like in our activity today...
-  // process the signup form
+
   app.post('/signup', passport.authenticate('local-signup', {
-    successRedirect: '/profile', // redirect to the secure profile section
-    failureRedirect: '/signup', // redirect back to the signup page if there is an error
-    failureFlash: true // allow flash messages
+    successRedirect: '/profile', 
+    failureRedirect: '/signup',
+    failureFlash: true // 
   }));
 
   // =============================================================================
@@ -341,10 +271,6 @@ module.exports = function(app, passport, db, ObjectId) {
     });
   });
 };
-
-
-
-
 
 // route middleware to ensure user is logged in
 function isLoggedIn(req, res, next) {
